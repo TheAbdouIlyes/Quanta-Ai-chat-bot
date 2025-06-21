@@ -18,27 +18,49 @@ export default function Chat() {
   const [chatLog, setChatLog] = useState([]);
   const [loading, setLoading] = useState(false);
   const chatBoxRef = useRef(null);
+  const eventSourceRef = useRef(null);
 
   const handleSend = async () => {
     if (!message.trim()) return;
 
     const userMsg = { sender: "user", text: message };
-    setChatLog(prev => [...prev, userMsg]);
+    setChatLog((prev) => [...prev, userMsg]);
     setMessage("");
     setLoading(true);
 
+    const newBotMsg = { sender: "bot", text: "" };
+    setChatLog((prev) => [...prev, newBotMsg]);
+
     try {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
       const res = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ message }),
+        signal
       });
 
-      const data = await res.json();
-      const botMsg = { sender: "bot", text: data.reply };
-      setChatLog(prev => [...prev, botMsg]);
+      eventSourceRef.current = new EventSource("/api/chat"); // ensure no duplicate
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+
+      let botResponse = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        botResponse += chunk;
+        setChatLog((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { sender: "bot", text: botResponse };
+          return updated;
+        });
+      }
     } catch (err) {
-      setChatLog(prev => [...prev, { sender: "bot", text: "❌ Error connecting to server." }]);
+      setChatLog((prev) => [...prev, { sender: "bot", text: "❌ Error connecting to server." }]);
     }
 
     setLoading(false);
