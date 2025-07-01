@@ -19,11 +19,7 @@ from .models import UploadedFile, Chunk
 nltk.download("punkt")
 UPLOAD_FOLDER = os.path.join(settings.BASE_DIR, "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 model = SentenceTransformer("all-MiniLM-L6-v2")
-sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
-sym_spell.load_dictionary("dectionnaire.txt", term_index=0, count_index=1)
-
 # === UTILITY FUNCTIONS ===
 
 def extract_text(file_path):
@@ -68,15 +64,7 @@ def fix_with_symspell(text):
         i += 1
     return " ".join(fixed)
 
-def clean_response(text):
-    text = re.sub(r"<\s*think\s*>.*?<\s*/\s*think\s*>", "", text, flags=re.DOTALL | re.IGNORECASE)
-    replacements = {
-        r"Deep\s*Seek\s*-\s*R\s*1.*?Preview": "Quanta Club Chatbot",
-    }
-    for pattern, repl in replacements.items():
-        text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
-    text = re.sub(r"\s+", " ", text)
-    return fix_with_symspell(text).strip()
+
 
 def search_similar(query, top_k=5):
     all_chunks = list(Chunk.objects.all())
@@ -136,12 +124,12 @@ User message (detect language and respond in same language):
                     raw = chunk.get("response", "")
                     buffer += raw
                     if re.search(r"[.!?،؛؟]\s*$", buffer):
-                        cleaned = clean_response(buffer)
+                        cleaned = buffer
                         if cleaned:
                             yield f"{cleaned}\n\n"
                         buffer = ""
                 if buffer.strip():
-                    cleaned = clean_response(buffer)
+                    cleaned = buffer
                     if cleaned:
                         yield f"{cleaned}\n\n"
             except Exception as e:
@@ -216,3 +204,34 @@ class DeleteFileView(APIView):
             return Response({"error": "File not found."}, status=404)
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+
+
+from .models import CommonQuestion
+
+class CommonQuestionsView(APIView):
+    def get(self, request):
+        data = [
+            {"question": q.question, "answer": q.answer}
+            for q in CommonQuestion.objects.all()
+        ]
+        return Response({"questions": data})
+    
+
+
+class AddCommonQuestionView(APIView):
+    def post(self, request):
+        question = request.data.get("question")
+        answer = request.data.get("answer")
+
+        if not question or not answer:
+            return Response({"error": "Both question and answer are required."}, status=400)
+
+        q = CommonQuestion.objects.create(question=question, answer=answer)
+        return Response({
+            "message": "Question added successfully.",
+            "id": q.id,
+            "question": q.question,
+            "answer": q.answer
+        }, status=201)
+    
+

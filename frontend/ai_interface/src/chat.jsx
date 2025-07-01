@@ -19,7 +19,26 @@ export default function Chat() {
   const [message, setMessage] = useState("");
   const [chatLog, setChatLog] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState("normal"); // 'normal' | 'common'
+  const [commonQuestions, setCommonQuestions] = useState([]);
+
   const chatBoxRef = useRef(null);
+
+  const fetchCommonQuestions = async () => {
+    const res = await fetch(`${API_BASE}/common-questions/`);
+    const data = await res.json();
+    setCommonQuestions(data.questions || []);
+  };
+
+  useEffect(() => {
+    chatBoxRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatLog]);
+
+  useEffect(() => {
+    if (mode === "common") {
+      fetchCommonQuestions();
+    }
+  }, [mode]);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -75,9 +94,13 @@ export default function Chat() {
     }
   };
 
-  useEffect(() => {
-    chatBoxRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatLog]);
+  const handleCommonQuestionClick = (q, a) => {
+    setChatLog((prev) => [
+      ...prev,
+      { role: "user", content: q },
+      { role: "bot", content: a },
+    ]);
+  };
 
   return (
     <Container
@@ -107,6 +130,16 @@ export default function Chat() {
           Quanta Club Chatbot
         </Typography>
 
+        {/* Mode Switch Button */}
+        <Button
+          variant="outlined"
+          onClick={() => setMode(mode === "normal" ? "common" : "normal")}
+          sx={{ mb: 2 }}
+        >
+          {mode === "normal" ? "💡 Common Questions Mode" : "💬 Normal Mode"}
+        </Button>
+
+        {/* Chat Display */}
         <Box
           sx={{
             flexGrow: 1,
@@ -143,30 +176,55 @@ export default function Chat() {
           </Stack>
         </Box>
 
-        <TextField
-          fullWidth
-          multiline
-          maxRows={4}
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
-          disabled={isLoading}
-          variant="outlined"
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  color="primary"
-                  onClick={handleSendMessage}
-                  disabled={isLoading}
+        {/* Common Questions Buttons */}
+        {mode === "common" && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Click a question:
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {commonQuestions.map((item, index) => (
+                <Button
+                  key={index}
+                  variant="outlined"
+                  onClick={() =>
+                    handleCommonQuestionClick(item.question, item.answer)
+                  }
                 >
-                  {isLoading ? <CircularProgress size={24} /> : <SendIcon />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+                  {item.question}
+                </Button>
+              ))}
+            </Stack>
+          </Box>
+        )}
+
+        {/* Text Input */}
+        {mode === "normal" && (
+          <TextField
+            fullWidth
+            multiline
+            maxRows={4}
+            placeholder="Type your message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isLoading}
+            variant="outlined"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    color="primary"
+                    onClick={handleSendMessage}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? <CircularProgress size={24} /> : <SendIcon />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        )}
       </Paper>
     </Container>
   );

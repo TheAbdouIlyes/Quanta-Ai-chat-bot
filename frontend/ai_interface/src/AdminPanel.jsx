@@ -17,7 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 const API_BASE = "http://localhost:8000/api";
 
 export default function AdminPanel() {
-  const [faq, setFaq] = useState({});
+  const [commonQuestions, setCommonQuestions] = useState([]);
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
   const [newLink, setNewLink] = useState("");
@@ -26,12 +26,15 @@ export default function AdminPanel() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
   useEffect(() => {
-    fetch("faq.json")
-      .then((res) => res.json())
-      .then(setFaq);
-
+    fetchCommonQuestions();
     fetchFiles();
   }, []);
+
+  const fetchCommonQuestions = async () => {
+    const res = await fetch(`${API_BASE}/common-questions/`);
+    const data = await res.json();
+    setCommonQuestions(data.questions || []);
+  };
 
   const fetchFiles = async () => {
     const res = await fetch(`${API_BASE}/files/`);
@@ -39,30 +42,32 @@ export default function AdminPanel() {
     setUploadedFiles(data);
   };
 
-  const handleAddFAQ = () => {
-    if (!newQuestion.trim() || !newAnswer.trim()) return;
+  const handleAddFAQ = async () => {
+    if (!newQuestion.trim() || !newAnswer.trim()) {
+      setMessage("❌ Question and answer are required.");
+      return;
+    }
 
-    const updated = {
-      ...faq,
-      [newQuestion]: {
-        answer: newAnswer,
-        ...(newLink && { link: newLink }),
-      },
-    };
-    setFaq(updated);
-    setNewQuestion("");
-    setNewAnswer("");
-    setNewLink("");
-  };
-
-  const handleSaveFAQ = async () => {
-    const res = await fetch(`${API_BASE}/admin/update_faq`, {
+    const res = await fetch(`${API_BASE}/add-common-question/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ faq }),
+      body: JSON.stringify({
+        question: newQuestion.trim(),
+        answer: newAnswer.trim(),
+      }),
     });
+
     const data = await res.json();
-    setMessage(data.message || "FAQ saved.");
+
+    if (res.ok) {
+      setMessage("✅ Common question added.");
+      setNewQuestion("");
+      setNewAnswer("");
+      setNewLink("");
+      fetchCommonQuestions();
+    } else {
+      setMessage(data.error || "❌ Failed to add question.");
+    }
   };
 
   const handleUpload = async () => {
@@ -100,7 +105,7 @@ export default function AdminPanel() {
           ⚙️ Admin Panel – Quanta FAQ Manager
         </Typography>
 
-        <Stack direction="row" spacing={2} sx={{ my: 2 }}>
+        <Stack direction="row" spacing={2} sx={{ my: 2, flexWrap: "wrap" }}>
           <TextField
             label="New Question"
             value={newQuestion}
@@ -113,43 +118,19 @@ export default function AdminPanel() {
             onChange={(e) => setNewAnswer(e.target.value)}
             fullWidth
           />
-          <TextField
-            label="Link (optional)"
-            value={newLink}
-            onChange={(e) => setNewLink(e.target.value)}
-            fullWidth
-          />
           <Button variant="contained" onClick={handleAddFAQ}>
             Add
           </Button>
         </Stack>
 
-        <Button
-          variant="contained"
-          color="success"
-          onClick={handleSaveFAQ}
-          sx={{ mb: 3 }}
-        >
-          Save FAQ to Server
-        </Button>
-
         <Divider sx={{ mb: 2 }} />
-        <Typography variant="h6">📋 Current FAQ</Typography>
+        <Typography variant="h6">📋 Current Common Questions</Typography>
         <List>
-          {Object.entries(faq).map(([q, data]) => (
-            <ListItem key={q} alignItems="flex-start">
+          {commonQuestions.map((item, idx) => (
+            <ListItem key={idx} alignItems="flex-start">
               <ListItemText
-                primary={q}
-                secondary={
-                  <>
-                    {data.answer}
-                    {data.link && (
-                      <span style={{ display: "block", marginTop: 4 }}>
-                        🔗 {data.link}
-                      </span>
-                    )}
-                  </>
-                }
+                primary={item.question}
+                secondary={item.answer}
               />
             </ListItem>
           ))}
@@ -191,7 +172,7 @@ export default function AdminPanel() {
 
         {message && (
           <Typography variant="body2" color="primary" sx={{ mt: 2 }}>
-            ✅ {message}
+            {message}
           </Typography>
         )}
       </Paper>
