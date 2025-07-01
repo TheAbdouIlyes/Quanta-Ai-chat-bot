@@ -11,7 +11,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from langdetect import detect
 from symspellpy.symspellpy import SymSpell, Verbosity
-
+ 
 # === Setup ===
 nltk.download("punkt")
 app = Flask(__name__)
@@ -175,14 +175,15 @@ def chat():
                     if re.search(r"</\s*think\s*>", buffer, flags=re.IGNORECASE):
                         seen_think_close = True
                         after_think = re.split(r"</\s*think\s*>", buffer, flags=re.IGNORECASE)[-1]
-                        cleaned = clean_response(after_think)
-                        if cleaned:
-                            yield f"{cleaned}\n\n"
+                       # cleaned = clean_response(after_think)
+                        if after_think:
+                            yield f"{after_think}\n\n"
                         buffer = ""
                 else:
-                    cleaned = clean_response(raw)
-                    if cleaned:
-                        yield f"{cleaned}\n\n"
+                    #cleaned = clean_response(raw)
+                    
+                    if raw :
+                        yield f"{raw}\n\n"
         except Exception as e:
             yield f"data: [LLM Error] {str(e)}\n\n"
 

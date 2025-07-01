@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from "react";
 import {
-  Container, Typography, Paper, TextField, Button, Box, Stack,
-  List, ListItem, ListItemText, Divider
+  Container,
+  Typography,
+  Paper,
+  TextField,
+  Button,
+  Stack,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  IconButton,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "http://localhost:8000/api";
 
 export default function AdminPanel() {
   const [faq, setFaq] = useState({});
@@ -13,12 +23,21 @@ export default function AdminPanel() {
   const [newLink, setNewLink] = useState("");
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
   useEffect(() => {
     fetch("faq.json")
       .then((res) => res.json())
       .then(setFaq);
+
+    fetchFiles();
   }, []);
+
+  const fetchFiles = async () => {
+    const res = await fetch(`${API_BASE}/files/`);
+    const data = await res.json();
+    setUploadedFiles(data);
+  };
 
   const handleAddFAQ = () => {
     if (!newQuestion.trim() || !newAnswer.trim()) return;
@@ -27,8 +46,8 @@ export default function AdminPanel() {
       ...faq,
       [newQuestion]: {
         answer: newAnswer,
-        ...(newLink && { link: newLink })
-      }
+        ...(newLink && { link: newLink }),
+      },
     };
     setFaq(updated);
     setNewQuestion("");
@@ -40,10 +59,10 @@ export default function AdminPanel() {
     const res = await fetch(`${API_BASE}/admin/update_faq`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ faq })
+      body: JSON.stringify({ faq }),
     });
     const data = await res.json();
-    setMessage(data.message || "Saved.");
+    setMessage(data.message || "FAQ saved.");
   };
 
   const handleUpload = async () => {
@@ -53,12 +72,25 @@ export default function AdminPanel() {
 
     const res = await fetch(`${API_BASE}/admin/upload_doc`, {
       method: "POST",
-      body: formData
+      body: formData,
     });
 
     const data = await res.json();
     setMessage(data.message || "File uploaded.");
     setFile(null);
+    fetchFiles();
+  };
+
+  const handleDeleteFile = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this file?")) return;
+
+    const res = await fetch(`${API_BASE}/delete-file/${id}/`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+    setMessage(data.message || "File deleted.");
+    fetchFiles();
   };
 
   return (
@@ -92,7 +124,12 @@ export default function AdminPanel() {
           </Button>
         </Stack>
 
-        <Button variant="contained" color="success" onClick={handleSaveFAQ} sx={{ mb: 3 }}>
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleSaveFAQ}
+          sx={{ mb: 3 }}
+        >
           Save FAQ to Server
         </Button>
 
@@ -103,7 +140,16 @@ export default function AdminPanel() {
             <ListItem key={q} alignItems="flex-start">
               <ListItemText
                 primary={q}
-                secondary={`${data.answer} ${data.link ? "🔗 " + data.link : ""}`}
+                secondary={
+                  <>
+                    {data.answer}
+                    {data.link && (
+                      <span style={{ display: "block", marginTop: 4 }}>
+                        🔗 {data.link}
+                      </span>
+                    )}
+                  </>
+                }
               />
             </ListItem>
           ))}
@@ -121,6 +167,27 @@ export default function AdminPanel() {
             Upload
           </Button>
         </Stack>
+
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h6">🗂️ Uploaded Files</Typography>
+        <List>
+          {uploadedFiles.map((file) => (
+            <ListItem
+              key={file.id}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() => handleDeleteFile(file.id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              }
+            >
+              <ListItemText primary={file.name} secondary={file.path} />
+            </ListItem>
+          ))}
+        </List>
 
         {message && (
           <Typography variant="body2" color="primary" sx={{ mt: 2 }}>

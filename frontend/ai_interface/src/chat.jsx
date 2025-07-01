@@ -1,91 +1,122 @@
-// src/Chat.jsx
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Container,
-  TextField,
-  Button,
-  Typography,
   Box,
+  Button,
+  CircularProgress,
+  Container,
+  IconButton,
+  InputAdornment,
   Paper,
   Stack,
-  CircularProgress
+  TextField,
+  Typography,
 } from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "http://localhost:8000/api";
 
 export default function Chat() {
   const [message, setMessage] = useState("");
   const [chatLog, setChatLog] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const chatBoxRef = useRef(null);
-  const eventSourceRef = useRef(null);
 
-  const handleSend = async () => {
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
 
-    const userMsg = { sender: "user", text: message };
-    setChatLog((prev) => [...prev, userMsg]);
+    const userEntry = { role: "user", content: message };
+    setChatLog((prev) => [...prev, userEntry]);
+    setIsLoading(true);
     setMessage("");
-    setLoading(true);
-
-    const newBotMsg = { sender: "bot", text: "" };
-    setChatLog((prev) => [...prev, newBotMsg]);
 
     try {
-      const controller = new AbortController();
-      const signal = controller.signal;
-
-      const res = await fetch(`${API_BASE}/chat`, {
+      const response = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
-        signal
       });
 
-      eventSourceRef.current = new EventSource("/api/chat"); // ensure no duplicate
+      if (!response.ok) throw new Error("Server error");
 
-      const reader = res.body.getReader();
+      const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
+      let botReply = "";
 
-      let botResponse = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value);
-        botResponse += chunk;
+
+        botReply += decoder.decode(value);
         setChatLog((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1] = { sender: "bot", text: botResponse };
-          return updated;
+          const last = updated[updated.length - 1];
+          if (last?.role === "bot") {
+            last.content = botReply;
+          } else {
+            updated.push({ role: "bot", content: botReply });
+          }
+          return [...updated];
         });
       }
     } catch (err) {
-      setChatLog((prev) => [...prev, { sender: "bot", text: "❌ Error connecting to server." }]);
+      setChatLog((prev) => [
+        ...prev,
+        { role: "bot", content: "Error: " + err.message },
+      ]);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    setLoading(false);
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   useEffect(() => {
-    chatBoxRef.current?.scrollTo({ top: chatBoxRef.current.scrollHeight, behavior: "smooth" });
+    chatBoxRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatLog]);
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 5 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          🤖 Quanta Club Chatbot
+    <Container
+      maxWidth="md"
+      sx={{
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#d6e3e4",
+      }}
+    >
+      <Paper
+        elevation={4}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "90vh",
+          width: "100%",
+          maxWidth: 800,
+          p: 3,
+          borderRadius: 4,
+          backgroundColor: "#ffffff",
+        }}
+      >
+        <Typography variant="h4" align="center" gutterBottom>
+          Quanta Club Chatbot
         </Typography>
 
         <Box
-          ref={chatBoxRef}
           sx={{
-            maxHeight: 300,
+            flexGrow: 1,
             overflowY: "auto",
-            bgcolor: "#f5f5f5",
-            p: 2,
-            borderRadius: 1,
-            mb: 2,
+            my: 2,
+            px: 2,
+            py: 1,
+            border: "1px solid #ccc",
+            borderRadius: 2,
+            backgroundColor: "#f5f7f9",
           }}
         >
           <Stack spacing={1}>
@@ -93,44 +124,49 @@ export default function Chat() {
               <Box
                 key={idx}
                 sx={{
-                  textAlign: msg.sender === "user" ? "right" : "left",
-                  bgcolor: msg.sender === "user" ? "#e0f7fa" : "#e8f5e9",
+                  alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
+                  backgroundColor:
+                    msg.role === "user" ? "#1976d2" : "#eeeeee",
+                  color: msg.role === "user" ? "#fff" : "#000",
                   px: 2,
                   py: 1,
-                  borderRadius: 2,
+                  borderRadius: 3,
                   maxWidth: "80%",
-                  alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
+                  wordBreak: "break-word",
+                  whiteSpace: "pre-wrap",
                 }}
               >
-                <Typography variant="body2" color="text.secondary">
-                  {msg.sender === "user" ? "You" : "Bot"}
-                </Typography>
-                <Typography variant="body1">
-                  {msg.text}
-                </Typography>
+                {msg.content}
               </Box>
             ))}
-            {loading && (
-              <Box sx={{ textAlign: "left" }}>
-                <CircularProgress size={20} />
-              </Box>
-            )}
+            <div ref={chatBoxRef} />
           </Stack>
         </Box>
 
-        <Stack direction="row" spacing={1}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask something about Quanta Club..."
-          />
-          <Button variant="contained" onClick={handleSend} disabled={loading}>
-            Send
-          </Button>
-        </Stack>
+        <TextField
+          fullWidth
+          multiline
+          maxRows={4}
+          placeholder="Type your message..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          disabled={isLoading}
+          variant="outlined"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  color="primary"
+                  onClick={handleSendMessage}
+                  disabled={isLoading}
+                >
+                  {isLoading ? <CircularProgress size={24} /> : <SendIcon />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
       </Paper>
     </Container>
   );

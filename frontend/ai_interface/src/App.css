@@ -1,42 +1,47 @@
+/* Reset some defaults */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Roboto', sans-serif;
+  background-color: #d6e3e4;
+}
+
+/* Root wrapper used in main.jsx */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Optional utility if you want centered content in root */
+.centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+/* Unused Vite template styles removed */
+/* If you still want a custom logo class, here's a cleaner version */
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  height: 64px;
+  margin: 16px auto;
+  display: block;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
+/* Card layout utility class (if needed) */
 .card {
-  padding: 2em;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
+/* Subtle helper text */
 .read-the-docs {
-  color: #888;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
 }
