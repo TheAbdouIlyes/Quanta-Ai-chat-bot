@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDarkMode } from "./App";
 import {
   Container,
   Typography,
@@ -11,12 +13,33 @@ import {
   ListItemText,
   Divider,
   IconButton,
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Chip,
+  Alert,
+  Snackbar,
+  AppBar,
+  Toolbar,
+  Avatar,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ChatIcon from "@mui/icons-material/Chat";
+import SettingsIcon from "@mui/icons-material/Settings";
+import UploadIcon from "@mui/icons-material/Upload";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import FolderIcon from "@mui/icons-material/Folder";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+
 
 const API_BASE = "http://localhost:8000/api";
 
 export default function AdminPanel() {
+  const navigate = useNavigate();
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const [commonQuestions, setCommonQuestions] = useState([]);
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
@@ -24,6 +47,9 @@ export default function AdminPanel() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   useEffect(() => {
     fetchCommonQuestions();
@@ -42,9 +68,15 @@ export default function AdminPanel() {
     setUploadedFiles(data);
   };
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
   const handleAddFAQ = async () => {
     if (!newQuestion.trim() || !newAnswer.trim()) {
-      setMessage("❌ Question and answer are required.");
+      showSnackbar("❌ Question and answer are required.", "error");
       return;
     }
 
@@ -60,18 +92,22 @@ export default function AdminPanel() {
     const data = await res.json();
 
     if (res.ok) {
-      setMessage("✅ Common question added.");
+      showSnackbar("✅ Common question added successfully!");
       setNewQuestion("");
       setNewAnswer("");
       setNewLink("");
       fetchCommonQuestions();
     } else {
-      setMessage(data.error || "❌ Failed to add question.");
+      showSnackbar(data.error || "❌ Failed to add question.", "error");
     }
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      showSnackbar("❌ Please select a file to upload.", "error");
+      return;
+    }
+    
     const formData = new FormData();
     formData.append("file", file);
 
@@ -81,7 +117,7 @@ export default function AdminPanel() {
     });
 
     const data = await res.json();
-    setMessage(data.message || "File uploaded.");
+    showSnackbar(data.message || "✅ File uploaded successfully!");
     setFile(null);
     fetchFiles();
   };
@@ -94,88 +130,283 @@ export default function AdminPanel() {
     });
 
     const data = await res.json();
-    setMessage(data.message || "File deleted.");
+    showSnackbar(data.message || "✅ File deleted successfully!");
     fetchFiles();
   };
 
+
+
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          ⚙️ Admin Panel – Quanta FAQ Manager
-        </Typography>
-
-        <Stack direction="row" spacing={2} sx={{ my: 2, flexWrap: "wrap" }}>
-          <TextField
-            label="New Question"
-            value={newQuestion}
-            onChange={(e) => setNewQuestion(e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Answer"
-            value={newAnswer}
-            onChange={(e) => setNewAnswer(e.target.value)}
-            fullWidth
-          />
-          <Button variant="contained" onClick={handleAddFAQ}>
-            Add
-          </Button>
-        </Stack>
-
-        <Divider sx={{ mb: 2 }} />
-        <Typography variant="h6">📋 Current Common Questions</Typography>
-        <List>
-          {commonQuestions.map((item, idx) => (
-            <ListItem key={idx} alignItems="flex-start">
-              <ListItemText
-                primary={item.question}
-                secondary={item.answer}
-              />
-            </ListItem>
-          ))}
-        </List>
-
-        <Divider sx={{ my: 2 }} />
-        <Typography variant="h6">📤 Upload Document</Typography>
-        <Stack direction="row" spacing={2} sx={{ my: 1 }}>
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files[0])}
-            accept=".pdf,.docx,.txt"
-          />
-          <Button variant="outlined" onClick={handleUpload}>
-            Upload
-          </Button>
-        </Stack>
-
-        <Divider sx={{ my: 2 }} />
-        <Typography variant="h6">🗂️ Uploaded Files</Typography>
-        <List>
-          {uploadedFiles.map((file) => (
-            <ListItem
-              key={file.id}
-              secondaryAction={
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => handleDeleteFile(file.id)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              }
-            >
-              <ListItemText primary={file.name} secondary={file.path} />
-            </ListItem>
-          ))}
-        </List>
-
-        {message && (
-          <Typography variant="body2" color="primary" sx={{ mt: 2 }}>
-            {message}
+    <Box sx={{ 
+      height: "100vh", 
+      backgroundColor: darkMode ? "#2d2d2d" : "#f7f7f8",
+      transition: "background-color 0.3s ease"
+    }}>
+      {/* Header */}
+      <AppBar position="static" sx={{ 
+        backgroundColor: darkMode ? "#1a1a1a" : "#ffffff", 
+        color: darkMode ? "#ffffff" : "#1a1a1a", 
+        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        transition: "background-color 0.3s ease, color 0.3s ease"
+      }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            onClick={() => navigate("/")}
+            sx={{ mr: 2, color: darkMode ? "#e0e0e0" : "#666" }}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+            <SettingsIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+            Admin Panel
           </Typography>
-        )}
-      </Paper>
-    </Container>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <IconButton
+              onClick={toggleDarkMode}
+              sx={{
+                color: darkMode ? "#e0e0e0" : "#666",
+                "&:hover": {
+                  backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                },
+              }}
+              title={darkMode ? "Light Mode" : "Dark Mode"}
+            >
+              {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+            <Button
+              variant="outlined"
+              startIcon={<ChatIcon />}
+              onClick={() => navigate("/")}
+              sx={{ 
+                color: "#10a37f", 
+                borderColor: "#10a37f",
+                "&:hover": {
+                  borderColor: "#0d8a6f",
+                  backgroundColor: "rgba(16, 163, 127, 0.1)"
+                }
+              }}
+            >
+              Back to Chat
+            </Button>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      <Container sx={{ mt: 4, mb: 4, height: "calc(100vh - 120px)",width: "90%",display: "flex",alignItems:"center",justifyContent:"center" }}>
+        {/* <Grid container spacing={3} sx={{ height: "100%" ,width: "100%"}}> */}
+          {/* FAQ Management Section */}
+          {/* <Grid item  md={6} sx={{ height: "100%" ,width: "40%"}}> */}
+            <Card sx={{ 
+              height: "100%", 
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
+              transition: "background-color 0.3s ease",
+              display: "flex",
+              flexDirection: "column"
+            }}>
+              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                  <QuestionAnswerIcon sx={{ mr: 1, color: "#10a37f" }} />
+                                  <Typography variant="h6" sx={{ fontWeight: 600, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
+                  FAQ Management
+                </Typography>
+                </Box>
+                
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  <TextField
+                    label="Question"
+                    value={newQuestion}
+                    onChange={(e) => setNewQuestion(e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Enter a common question..."
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
+                        color: darkMode ? "#ffffff" : "#000000",
+                        "& .MuiInputBase-input": {
+                          color: darkMode ? "#ffffff" : "#000000",
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: darkMode ? "#404040" : "#d0d0d0",
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: darkMode ? "#e0e0e0" : "#666",
+                        },
+                      },
+                    }}
+                  />
+                  <TextField
+                    label="Answer"
+                    value={newAnswer}
+                    onChange={(e) => setNewAnswer(e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={3}
+                    variant="outlined"
+                    placeholder="Enter the answer..."
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
+                        color: darkMode ? "#ffffff" : "#000000",
+                        "& .MuiInputBase-input": {
+                          color: darkMode ? "#ffffff" : "#000000",
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: darkMode ? "#404040" : "#d0d0d0",
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: darkMode ? "#e0e0e0" : "#666",
+                        },
+                      },
+                    }}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleAddFAQ}
+                    sx={{ 
+                      backgroundColor: "#10a37f",
+                      "&:hover": { backgroundColor: "#0d8a6f" }
+                    }}
+                    startIcon={<QuestionAnswerIcon />}
+                  >
+                    Add FAQ
+                  </Button>
+                </Stack>
+
+                <Divider sx={{ my: 2 }} />
+                
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
+                  Current FAQs ({commonQuestions.length})
+                </Typography>
+                
+                <Box sx={{ flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
+                  {commonQuestions.map((item, idx) => (
+                    <Paper key={idx} sx={{ 
+                      p: 2, 
+                      mb: 1, 
+                      backgroundColor: darkMode ? "#2d2d2d" : "#f8f9fa",
+                      transition: "background-color 0.3s ease"
+                    }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
+                        Q: {item.question}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: darkMode ? "#e0e0e0" : "#666" }}>
+                        A: {item.answer}
+                      </Typography>
+                    </Paper>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          {/* </Grid> */}
+
+          {/* File Upload Section */}
+          {/* <Grid item  md={6} sx={{ height: "100%" ,width: "60%"}}> */}
+            <Card sx={{ 
+              height: "100%", 
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
+              transition: "background-color 0.3s ease",
+              display: "flex",
+              flexDirection: "column"
+            }}>
+              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                  <UploadIcon sx={{ mr: 1, color: "#10a37f" }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
+                    Document Upload
+                  </Typography>
+                </Box>
+                
+                <Paper sx={{ 
+                  p: 2, 
+                  mb: 3, 
+                  backgroundColor: darkMode ? "#2d2d2d" : "#f8f9fa",
+                  transition: "background-color 0.3s ease"
+                }}>
+                  <input
+                    type="file"
+                    onChange={(e) => setFile(e.target.files[0])}
+                    accept=".pdf,.docx,.txt"
+                    style={{ 
+                      marginBottom: "16px",
+                      color: darkMode ? "#ffffff" : "#000000"
+                    }}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleUpload}
+                    disabled={!file}
+                    sx={{ 
+                      backgroundColor: "#10a37f",
+                      "&:hover": { backgroundColor: "#0d8a6f" }
+                    }}
+                    startIcon={<UploadIcon />}
+                  >
+                    Upload Document
+                  </Button>
+                </Paper>
+
+                <Divider sx={{ my: 2 }} />
+                
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  <FolderIcon sx={{ mr: 1, color: "#10a37f" }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
+                    Uploaded Files ({uploadedFiles.length})
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
+                  {uploadedFiles.map((file) => (
+                    <Paper key={file.id} sx={{ 
+                      p: 2, 
+                      mb: 1, 
+                      backgroundColor: darkMode ? "#2d2d2d" : "#f8f9fa",
+                      transition: "background-color 0.3s ease"
+                    }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
+                            {file.name}
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: darkMode ? "#e0e0e0" : "#666" }}>
+                            {file.path}
+                          </Typography>
+                        </Box>
+                        <IconButton
+                          onClick={() => handleDeleteFile(file.id)}
+                          sx={{ color: "#d32f2f" }}
+                          title="Delete File"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          {/* </Grid> */}
+        {/* </Grid> */}
+      </Container>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
-}
+} 

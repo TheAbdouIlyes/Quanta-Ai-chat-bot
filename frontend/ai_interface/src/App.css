@@ -1,47 +1,27 @@
-/* Reset some defaults */
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: 'Roboto', sans-serif;
-  background-color: #d6e3e4;
-}
+/* App.css */
 
-/* Root wrapper used in main.jsx */
-#root {
-  height: 100vh;
-  width: 100%;
+.navbar {
   display: flex;
-  flex-direction: column;
-}
-
-/* Optional utility if you want centered content in root */
-.centered {
-  display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  height: 100%;
+  background-color: #333;
+  padding: 12px 20px;
+  color: white;
+  width: 100%;
 }
 
-/* Unused Vite template styles removed */
-/* If you still want a custom logo class, here's a cleaner version */
-.logo {
-  height: 64px;
-  margin: 16px auto;
-  display: block;
+.navbar-title {
+  font-size: 20px;
+  font-weight: bold;
 }
 
-/* Card layout utility class (if needed) */
-.card {
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  background-color: white;
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  margin-left: 16px;
+  font-size: 16px;
 }
 
-/* Subtle helper text */
-.read-the-docs {
-  color: #666;
-  font-size: 0.9rem;
-  margin-top: 1rem;
+.navbar-links a:hover {
+  text-decoration: underline;
 }
