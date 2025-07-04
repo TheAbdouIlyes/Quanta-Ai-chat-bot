@@ -7,6 +7,7 @@
   align-items: flex-start;   /* Align items to the top */
   min-height: 100vh;         /* Ensures full height coverage */
   width: 100%;
-  padding: 40px 20px;
+  padding: 0; /* Remove padding that causes the gap */
+  margin: 0; /* Ensure no margin */
 }
 

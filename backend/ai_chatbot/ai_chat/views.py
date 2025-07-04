@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser
 from sentence_transformers import SentenceTransformer
 from langdetect import detect
-from symspellpy.symspellpy import SymSpell, Verbosity
+# from symspellpy.symspellpy import SymSpell, Verbosity
 from .models import UploadedFile, Chunk
 
 nltk.download("punkt")
