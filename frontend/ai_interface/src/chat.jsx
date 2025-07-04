@@ -52,7 +52,7 @@ export default function Chat() {
   }, [chatLog]);
 
   useEffect(() => {
-    fetchCommonQuestions();
+      fetchCommonQuestions();
   }, []);
 
   const handleSendMessage = async () => {
@@ -130,7 +130,7 @@ export default function Chat() {
   return (
     <Box sx={{ 
       display: "flex", 
-      height: "100vh", 
+        height: "100vh",
       backgroundColor: darkMode ? "#2d2d2d" : "#f7f7f8",
       transition: "background-color 0.3s ease"
     }}>
@@ -189,7 +189,7 @@ export default function Chat() {
         <Box sx={{ p: 2, flexGrow: 1 }}>
           <Typography variant="subtitle2" sx={{ color: "#8e8ea0", mb: 2 }}>
             Quick Questions:
-          </Typography>
+        </Typography>
           <Stack spacing={1}>
             {commonQuestions.map((item, index) => (
               <Button
@@ -215,7 +215,7 @@ export default function Chat() {
         <Box sx={{ flexGrow: 1 }} />
         {/* Clear button at bottom */}
         <Box sx={{ p: 2 }}>
-          <Button
+        <Button
             variant="text"
             startIcon={<DeleteIcon />}
             onClick={clearChat}
@@ -316,10 +316,10 @@ export default function Chat() {
             </Box>
           ) : (
             <Stack spacing={0}>
-              {chatLog.map((msg, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
+            {chatLog.map((msg, idx) => (
+              <Box
+                key={idx}
+                sx={{
                     backgroundColor: msg.role === "user" 
                       ? (darkMode ? "#1a1a1a" : "#ffffff") 
                       : (darkMode ? "#2d2d2d" : "#f7f7f8"),
@@ -354,7 +354,7 @@ export default function Chat() {
                                   color: darkMode ? "#ffffff" : "#1a1a1a",
                                   lineHeight: 1.6,
                                   whiteSpace: "pre-wrap",
-                                  wordBreak: "break-word",
+                  wordBreak: "break-word",
                                   textAlign: "right",
                                 }}
                               >
@@ -414,11 +414,11 @@ export default function Chat() {
                                 sx={{
                                   color: darkMode ? "#ffffff" : "#1a1a1a",
                                   lineHeight: 1.6,
-                                  whiteSpace: "pre-wrap",
+                  whiteSpace: "pre-wrap",
                                   wordBreak: "break-word",
-                                }}
-                              >
-                                {msg.content}
+                }}
+              >
+                {msg.content}
                               </Typography>
                             </Box>
                           </Box>
@@ -448,8 +448,8 @@ export default function Chat() {
                       </>
                     )}
                   </Box>
-                </Box>
-              ))}
+              </Box>
+            ))}
               {isLoading && (
                 <Box
                   sx={{
@@ -484,7 +484,7 @@ export default function Chat() {
               <div ref={chatBoxRef} />
             </Stack>
           )}
-        </Box>
+          </Box>
         {/* Input Area */}
         <Box
           sx={{
@@ -501,16 +501,16 @@ export default function Chat() {
               position: "relative",
             }}
           >
-            <TextField
-              fullWidth
-              multiline
-              maxRows={4}
+          <TextField
+            fullWidth
+            multiline
+            maxRows={4}
               placeholder="Message Quanta Club AI..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              disabled={isLoading}
-              variant="outlined"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isLoading}
+            variant="outlined"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 3,
@@ -534,12 +534,12 @@ export default function Chat() {
                   },
                 },
               }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      color="primary"
-                      onClick={handleSendMessage}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    color="primary"
+                    onClick={handleSendMessage}
                       disabled={isLoading || !message.trim()}
                       sx={{
                         backgroundColor: message.trim() ? "#10a37f" : "#e5e5e5",
@@ -554,11 +554,11 @@ export default function Chat() {
                       }}
                     >
                       {isLoading ? <CircularProgress size={20} /> : <SendIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
           </Box>
         </Box>
       </Box>
