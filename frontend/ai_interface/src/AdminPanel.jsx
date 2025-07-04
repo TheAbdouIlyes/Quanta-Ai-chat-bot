@@ -193,18 +193,25 @@ export default function AdminPanel() {
         </Toolbar>
       </AppBar>
 
-      <Container sx={{ mt: 4, mb: 4, height: "calc(100vh - 120px)",width: "90%",display: "flex",alignItems:"center",justifyContent:"center" }}>
-        {/* <Grid container spacing={3} sx={{ height: "100%" ,width: "100%"}}> */}
-          {/* FAQ Management Section */}
-          {/* <Grid item  md={6} sx={{ height: "100%" ,width: "40%"}}> */}
-            <Card sx={{ 
-              height: "100%", 
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
-              transition: "background-color 0.3s ease",
-              display: "flex",
-              flexDirection: "column"
-            }}>
+      <Container sx={{ 
+        mt: 4, 
+        mb: 4, 
+        height: "calc(100vh - 120px)",
+        display: "flex", 
+        gap: 3,
+        maxWidth: "100%",
+        px: 2
+      }}>
+        {/* FAQ Management Section */}
+        <Card sx={{ 
+          flex: "0 0 40%",
+          height: "100%", 
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
+          transition: "background-color 0.3s ease",
+          display: "flex",
+          flexDirection: "column"
+        }}>
               <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                   <QuestionAnswerIcon sx={{ mr: 1, color: "#10a37f" }} />
@@ -281,7 +288,22 @@ export default function AdminPanel() {
                   Current FAQs ({commonQuestions.length})
                 </Typography>
                 
-                <Box sx={{ flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
+                <Box sx={{ 
+                  flexGrow: 1, 
+                  overflowY: "auto", 
+                  minHeight: 0,
+                  maxHeight: "calc(100vh - 400px)",
+                  "&::-webkit-scrollbar": {
+                    width: "8px",
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    backgroundColor: darkMode ? "#2d2d2d" : "#f1f1f1",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: darkMode ? "#666" : "#c1c1c1",
+                    borderRadius: "4px",
+                  },
+                }}>
                   {commonQuestions.map((item, idx) => (
                     <Paper key={idx} sx={{ 
                       p: 2, 
@@ -300,18 +322,17 @@ export default function AdminPanel() {
                 </Box>
               </CardContent>
             </Card>
-          {/* </Grid> */}
 
-          {/* File Upload Section */}
-          {/* <Grid item  md={6} sx={{ height: "100%" ,width: "60%"}}> */}
-            <Card sx={{ 
-              height: "100%", 
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
-              transition: "background-color 0.3s ease",
-              display: "flex",
-              flexDirection: "column"
-            }}>
+        {/* File Upload Section */}
+        <Card sx={{ 
+          flex: "0 0 60%",
+          height: "100%", 
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
+          transition: "background-color 0.3s ease",
+          display: "flex",
+          flexDirection: "column"
+        }}>
               <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                   <UploadIcon sx={{ mr: 1, color: "#10a37f" }} />
@@ -358,7 +379,22 @@ export default function AdminPanel() {
                   </Typography>
                 </Box>
                 
-                <Box sx={{ flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
+                <Box sx={{ 
+                  flexGrow: 1, 
+                  overflowY: "auto", 
+                  minHeight: 0,
+                  maxHeight: "calc(100vh - 400px)",
+                  "&::-webkit-scrollbar": {
+                    width: "8px",
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    backgroundColor: darkMode ? "#2d2d2d" : "#f1f1f1",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: darkMode ? "#666" : "#c1c1c1",
+                    borderRadius: "4px",
+                  },
+                }}>
                   {uploadedFiles.map((file) => (
                     <Paper key={file.id} sx={{ 
                       p: 2, 
@@ -388,9 +424,7 @@ export default function AdminPanel() {
                 </Box>
               </CardContent>
             </Card>
-          {/* </Grid> */}
-        {/* </Grid> */}
-      </Container>
+        </Container>
 
       {/* Snackbar for notifications */}
       <Snackbar
