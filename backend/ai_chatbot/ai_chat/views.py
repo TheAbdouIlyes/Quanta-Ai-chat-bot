@@ -79,6 +79,15 @@ def search_similar(query, top_k=5):
     return [chunk_texts[i] for i in I[0] if i < len(chunk_texts)]
 
 # === VIEWS ===
+from difflib import get_close_matches
+from .models import CommonQuestion  # Import your model
+from langdetect import detect
+from django.http import StreamingHttpResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+import re
+import ollama
+
 
 class ChatView(APIView):
     def post(self, request):
@@ -86,6 +95,16 @@ class ChatView(APIView):
         if not user_msg:
             return Response({"reply": "Please enter a message."}, status=400)
 
+        # Step 1: Try to match a common question from DB
+        all_questions = list(CommonQuestion.objects.values_list("question", flat=True))
+        matched = get_close_matches(user_msg.lower(), [q.lower() for q in all_questions], n=1, cutoff=0.85)
+
+        if matched:
+            matched_question = CommonQuestion.objects.filter(question__iexact=matched[0]).first()
+            if matched_question:
+                return Response(  matched_question.answer.strip('"'))
+
+        # Step 2: Continue with LLM if no match
         try:
             lang = detect(user_msg)
         except:
@@ -108,6 +127,7 @@ class ChatView(APIView):
         )
 
         context = "\n\n".join(relevant_chunks)
+        print("context:",context)
         prompt = f"""{instruction}
 
 Context (can be in a different language):
@@ -126,12 +146,12 @@ User message (detect language and respond in same language):
                     if re.search(r"[.!?،؛؟]\s*$", buffer):
                         cleaned = buffer
                         if cleaned:
-                            yield f"{cleaned}\n\n"
+                            yield f"{cleaned}\n"
                         buffer = ""
                 if buffer.strip():
                     cleaned = buffer
                     if cleaned:
-                        yield f"{cleaned}\n\n"
+                        yield f"{cleaned}\n"
             except Exception as e:
                 yield f"data: [LLM Error] {str(e)}\n\n"
 

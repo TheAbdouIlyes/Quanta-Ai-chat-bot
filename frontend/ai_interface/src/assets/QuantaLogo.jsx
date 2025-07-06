@@ -34,6 +34,15 @@ export default function QuantaLogo({ size = 180 }) {
       ballPath: "M 300 110 a 190 190 0 1 0 0 380 a 190 190 0 1 0 0 -380"
     }
   ];
+
+  // Electric arc paths
+  const electricArcs = [
+    "M 300 200 Q 350 250 400 300 Q 450 350 500 300",
+    "M 200 300 Q 250 250 300 200 Q 350 150 400 200",
+    "M 300 400 Q 250 350 200 300 Q 150 250 100 300",
+    "M 400 300 Q 350 350 300 400 Q 250 450 200 400"
+  ];
+
   return (
     <svg
       width={size}
@@ -46,7 +55,41 @@ export default function QuantaLogo({ size = 180 }) {
         <filter id="ellipseShadow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#1976d2" floodOpacity="0.25" />
         </filter>
+        <filter id="electricGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge> 
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <linearGradient id="electricGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00ffff" stopOpacity="0"/>
+          <stop offset="50%" stopColor="#00ffff" stopOpacity="1"/>
+          <stop offset="100%" stopColor="#00ffff" stopOpacity="0"/>
+        </linearGradient>
       </defs>
+      
+      {/* Electric arcs that appear and disappear */}
+      {electricArcs.map((arc, i) => (
+        <path
+          key={`electric-${i}`}
+          d={arc}
+          stroke="url(#electricGradient)"
+          strokeWidth="2"
+          fill="none"
+          filter="url(#electricGlow)"
+          opacity="0"
+        >
+          <animate
+            attributeName="opacity"
+            values="0;1;0"
+            dur="2s"
+            begin={`${i * 0.5}s`}
+            repeatCount="indefinite"
+          />
+        </path>
+      ))}
+
       {/* Four animated ellipse groups, but only three with balls */}
       {ellipses.map((el, i) => (
         <g key={i}>
