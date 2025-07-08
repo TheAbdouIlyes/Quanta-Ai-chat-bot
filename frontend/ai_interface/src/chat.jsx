@@ -144,7 +144,7 @@ export default function Chat() {
           "& .MuiDrawer-paper": {
             width: sidebarOpen ? drawerWidth : 0,
             boxSizing: "border-box",
-            backgroundColor: darkMode ? "#1a1a1a" : "#202123",
+            backgroundColor: "#001925",
             color: "white",
             borderRight: darkMode ? "1px solid #404040" : "1px solid #4a4a4a",
             overflow: "hidden",
@@ -165,24 +165,6 @@ export default function Chat() {
           >
             <ChevronLeftIcon />
           </IconButton>
-        </Box>
-        <Divider sx={{ backgroundColor: "#4a4a4a" }} />
-        {/* Admin button */}
-        <Box sx={{ p: 2 }}>
-          <Button
-            variant="text"
-            startIcon={<SettingsIcon />}
-            onClick={() => navigate("/admin")}
-            sx={{
-              width: "100%",
-              color: "#8e8ea0",
-              "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.1)",
-              },
-            }}
-          >
-            Admin Panel
-          </Button>
         </Box>
         <Divider sx={{ backgroundColor: "#4a4a4a" }} />
         {/* FAQ Questions - Always visible */}
@@ -246,17 +228,19 @@ export default function Chat() {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <IconButton
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              sx={{
-                color: darkMode ? "#e0e0e0" : "#666",
-                "&:hover": {
-                  backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-                },
-              }}
-            >
-              {sidebarOpen ? <ChevronLeftIcon /> : <MenuIcon />}
-            </IconButton>
+            {!sidebarOpen && (
+              <IconButton
+                onClick={() => setSidebarOpen(true)}
+                sx={{
+                  color: darkMode ? "#e0e0e0" : "#666",
+                  "&:hover": {
+                    backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                  },
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
             <Typography 
               variant="h6" 
               sx={{ 
@@ -279,6 +263,18 @@ export default function Chat() {
               title={darkMode ? "Light Mode" : "Dark Mode"}
             >
               {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+            <IconButton
+              onClick={() => navigate("/admin")}
+              sx={{
+                color: darkMode ? "#e0e0e0" : "#666",
+                "&:hover": {
+                  backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                },
+              }}
+              title="Admin Panel"
+            >
+              <SettingsIcon />
             </IconButton>
           </Box>
         </Box>
@@ -344,26 +340,28 @@ export default function Chat() {
                   >
                     {msg.role === "user" ? (
                       <>
-                        <Box sx={{ flexGrow: 1 }} />
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, maxWidth: "70%" }}>
-                          <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-                            <Box sx={{ flexGrow: 1 }}>
-                              <Typography
-                                variant="body1"
-                                sx={{
-                                  color: darkMode ? "#ffffff" : "#1a1a1a",
-                                  lineHeight: 1.6,
-                                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                                  textAlign: "right",
-                                }}
-                              >
-                                {msg.content}
-                              </Typography>
-                            </Box>
+                        <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-end", width: "100%", minHeight: 40 }}>
+                          {/* Message text */}
+                          <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end", pr: 2 }}>
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                color: darkMode ? "#ffffff" : "#1a1a1a",
+                                lineHeight: 1.6,
+                                whiteSpace: "pre-wrap",
+                                wordBreak: "break-word",
+                                textAlign: "right",
+                                maxWidth: "100%",
+                              }}
+                            >
+                              {msg.content}
+                            </Typography>
+                          </Box>
+                          {/* Avatar at far right */}
+                          <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
                             <Avatar
                               sx={{
-                                backgroundColor: "#10a37f",
+                                backgroundColor: "#1976d2",
                                 width: 32,
                                 height: 32,
                               }}
@@ -371,34 +369,34 @@ export default function Chat() {
                               <PersonIcon />
                             </Avatar>
                           </Box>
-                          {/* Copy button for user message */}
-                          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                            <IconButton
-                              className="copy-button"
-                              onClick={() => copyMessage(msg.content, `user-${idx}`)}
-                              size="small"
-                              sx={{
-                                opacity: 0,
-                                transition: "opacity 0.2s",
-                                backgroundColor: "rgba(255,255,255,0.9)",
-                                "&:hover": {
-                                  backgroundColor: "rgba(255,255,255,1)",
-                                },
-                              }}
-                            >
-                              {copiedMessageId === `user-${idx}` ? (
-                                <CheckIcon sx={{ color: "#10a37f", fontSize: 16 }} />
-                              ) : (
-                                <ContentCopyIcon sx={{ color: "#666", fontSize: 16 }} />
-                              )}
-                            </IconButton>
-                          </Box>
+                        </Box>
+                        {/* Copy button for user message */}
+                        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                          <IconButton
+                            className="copy-button"
+                            onClick={() => copyMessage(msg.content, `user-${idx}`)}
+                            size="small"
+                            sx={{
+                              opacity: 0,
+                              transition: "opacity 0.2s",
+                              backgroundColor: "rgba(255,255,255,0.9)",
+                              "&:hover": {
+                                backgroundColor: "rgba(255,255,255,1)",
+                              },
+                            }}
+                          >
+                            {copiedMessageId === `user-${idx}` ? (
+                              <CheckIcon sx={{ color: "#1976d2", fontSize: 16 }} />
+                            ) : (
+                              <ContentCopyIcon sx={{ color: "#666", fontSize: 16 }} />
+                            )}
+                          </IconButton>
                         </Box>
                       </>
                     ) : (
                       <>
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, flexGrow: 1 }}>
-                          <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
+                          <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
                             <Avatar
                               sx={{
                                 backgroundColor: "#1a1a1a",
@@ -408,17 +406,30 @@ export default function Chat() {
                             >
                               <SmartToyIcon />
                             </Avatar>
+                            <Typography
+                              variant="subtitle2"
+                              sx={{
+                                color: darkMode ? "#ffffff" : "#1a1a1a",
+                                fontWeight: 600,
+                                fontSize: "1rem",
+                                ml: 1,
+                              }}
+                            >
+                              Quanta AI Chat Bot
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
                             <Box sx={{ flexGrow: 1 }}>
                               <Typography
                                 variant="body1"
                                 sx={{
                                   color: darkMode ? "#ffffff" : "#1a1a1a",
                                   lineHeight: 1.6,
-                  whiteSpace: "pre-wrap",
+                                  whiteSpace: "pre-wrap",
                                   wordBreak: "break-word",
-                }}
-              >
-                {msg.content}
+                                }}
+                              >
+                                {msg.content}
                               </Typography>
                             </Box>
                           </Box>
@@ -438,7 +449,7 @@ export default function Chat() {
                               }}
                             >
                               {copiedMessageId === `bot-${idx}` ? (
-                                <CheckIcon sx={{ color: "#10a37f", fontSize: 16 }} />
+                                <CheckIcon sx={{ color: "#1976d2", fontSize: 16 }} />
                               ) : (
                                 <ContentCopyIcon sx={{ color: "#666", fontSize: 16 }} />
                               )}
@@ -468,15 +479,27 @@ export default function Chat() {
                       alignItems: "center",
                     }}
                   >
-                    <Avatar
-                      sx={{
-                        backgroundColor: "#1a1a1a",
-                        width: 32,
-                        height: 32,
-                      }}
-                    >
-                      <SmartToyIcon />
-                    </Avatar>
+                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5 }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: darkMode ? "#8e8ea0" : "#666",
+                          fontSize: "0.75rem",
+                          fontWeight: 500
+                        }}
+                      >
+                        Quanta AI Chat Bot
+                      </Typography>
+                      <Avatar
+                        sx={{
+                          backgroundColor: "#1a1a1a",
+                          width: 32,
+                          height: 32,
+                        }}
+                      >
+                        <SmartToyIcon />
+                      </Avatar>
+                    </Box>
                     <CircularProgress size={20} />
                   </Box>
                 </Box>
@@ -524,12 +547,12 @@ export default function Chat() {
                   },
                   "&:hover": {
                     "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#10a37f",
+                      borderColor: "#1976d2",
                     },
                   },
                   "&.Mui-focused": {
                     "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#10a37f",
+                      borderColor: "#1976d2",
                     },
                   },
                 },
@@ -542,10 +565,10 @@ export default function Chat() {
                     onClick={handleSendMessage}
                       disabled={isLoading || !message.trim()}
                       sx={{
-                        backgroundColor: message.trim() ? "#10a37f" : "#e5e5e5",
+                        backgroundColor: message.trim() ? "#1976d2" : "#e5e5e5",
                         color: "white",
                         "&:hover": {
-                          backgroundColor: message.trim() ? "#0d8a6f" : "#e5e5e5",
+                          backgroundColor: message.trim() ? "#1565c0" : "#e5e5e5",
                         },
                         "&.Mui-disabled": {
                           backgroundColor: "#e5e5e5",

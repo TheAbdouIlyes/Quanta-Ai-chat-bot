@@ -211,7 +211,7 @@ from .models import CommonQuestion
 class CommonQuestionsView(APIView):
     def get(self, request):
         data = [
-            {"question": q.question, "answer": q.answer}
+            {"id": q.id, "question": q.question, "answer": q.answer}
             for q in CommonQuestion.objects.all()
         ]
         return Response({"questions": data})
@@ -233,5 +233,43 @@ class AddCommonQuestionView(APIView):
             "question": q.question,
             "answer": q.answer
         }, status=201)
+    
+
+class UpdateCommonQuestionView(APIView):
+    def put(self, request, question_id):
+        try:
+            question_obj = CommonQuestion.objects.get(id=question_id)
+            question = request.data.get("question")
+            answer = request.data.get("answer")
+
+            if not question or not answer:
+                return Response({"error": "Both question and answer are required."}, status=400)
+
+            question_obj.question = question
+            question_obj.answer = answer
+            question_obj.save()
+
+            return Response({
+                "message": "Question updated successfully.",
+                "id": question_obj.id,
+                "question": question_obj.question,
+                "answer": question_obj.answer
+            }, status=200)
+        except CommonQuestion.DoesNotExist:
+            return Response({"error": "Question not found."}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+
+class DeleteCommonQuestionView(APIView):
+    def delete(self, request, question_id):
+        try:
+            question_obj = CommonQuestion.objects.get(id=question_id)
+            question_obj.delete()
+            return Response({"message": "Question deleted successfully."}, status=200)
+        except CommonQuestion.DoesNotExist:
+            return Response({"error": "Question not found."}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
     
 
