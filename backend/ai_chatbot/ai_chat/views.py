@@ -325,22 +325,15 @@ class ChatView(APIView):
 
         relevant_chunks = search_similar(user_msg)
 
-        relevant_chunks = sorted(
-            relevant_chunks,
-            key=lambda c: detect(c) == lang,
-            reverse=True
-        )
+        # Use all relevant chunks without language filtering since we want English responses
+        relevant_chunks = relevant_chunks[:3]  # Limit to top 3 chunks
 
-        instruction = (
-            f"You are a multilingual assistant. The user's message is written in '{lang}'. "
-            f"Your answer MUST be written in the same language as the message, no matter the context. "
-            f"Do NOT use the language of the context if it's different. "
-            f"If the question is in French, answer in French. If it's Arabic, answer in Arabic. "
-            f"If it's English, answer in English. Do not translate."
-        )
+        # Always use English instruction regardless of user's message language
+        instruction = "You are an English assistant. Always respond in English only. Do not use any other language. Even if the user writes in a different language, respond in English."
 
-        context = "\n\n".join(relevant_chunks)
-        print("context:",context)
+        # Limit context to prevent huge prompts
+        context = "\n\n".join(relevant_chunks)  # Use filtered chunks
+        # print("context:",context)
         prompt = f"""{instruction}
 
 Context (can be in a different language):
@@ -588,5 +581,20 @@ class DeleteAdminAccountView(APIView):
             return Response({'error': 'Cannot delete yourself or another super admin.'}, status=400)
         user.delete()
         return Response({'message': f'Admin account {user.email} deleted.'})
+    
+
+# Add this at the top of views.py
+_cached_index = None
+_cached_chunks = None
+
+def get_or_create_index():
+    global _cached_index, _cached_chunks
+    if _cached_index is None:
+        all_chunks = list(Chunk.objects.all())
+        chunk_vectors = [np.frombuffer(c.embedding, dtype=np.float32) for c in all_chunks]
+        _cached_index = faiss.IndexFlatL2(384)
+        _cached_index.add(np.array(chunk_vectors, dtype="float32"))
+        _cached_chunks = [c.text for c in all_chunks]
+    return _cached_index, _cached_chunks
     
 
