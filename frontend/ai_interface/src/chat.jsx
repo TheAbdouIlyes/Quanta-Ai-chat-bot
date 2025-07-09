@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDarkMode } from "./App";
+import { useAuth } from "./AuthContext";
 import {
   Box,
   Button,
@@ -25,6 +26,8 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
 import QuantaLogo from "./assets/QuantaLogo";
 
 const API_BASE = "http://localhost:8000/api";
@@ -32,6 +35,7 @@ const API_BASE = "http://localhost:8000/api";
 export default function Chat() {
   const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useDarkMode();
+  const { user, isAuthenticated, logout } = useAuth();
   const [message, setMessage] = useState("");
   const [chatLog, setChatLog] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -152,8 +156,8 @@ export default function Chat() {
           },
         }}
       >
-        {/* Close button at top */}
-        <Box sx={{ p: 2, display: "flex", justifyContent: "flex-start" }}>
+        {/* Close button and title at top */}
+        <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <IconButton
             onClick={() => setSidebarOpen(false)}
             sx={{
@@ -165,6 +169,19 @@ export default function Chat() {
           >
             <ChevronLeftIcon />
           </IconButton>
+          {sidebarOpen && (
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                color: "#ffffff",
+                fontWeight: 600,
+                flexGrow: 1,
+                textAlign: "center"
+              }}
+            >
+              Quanta Club
+            </Typography>
+          )}
         </Box>
         <Divider sx={{ backgroundColor: "#4a4a4a" }} />
         {/* FAQ Questions - Always visible */}
@@ -195,6 +212,48 @@ export default function Chat() {
         </Box>
         {/* Spacer to push clear button to bottom */}
         <Box sx={{ flexGrow: 1 }} />
+        {/* User Status in Sidebar */}
+        {isAuthenticated && (
+          <Box sx={{ p: 2, borderTop: "1px solid #4a4a4a" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                backgroundColor: "rgba(76, 175, 80, 0.2)",
+                border: "1px solid #4caf50",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  backgroundColor: "#4caf50",
+                  animation: "pulse 2s infinite",
+                  "@keyframes pulse": {
+                    "0%": { opacity: 1 },
+                    "50%": { opacity: 0.5 },
+                    "100%": { opacity: 1 },
+                  },
+                }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "#4caf50",
+                  fontWeight: 500,
+                  fontSize: "0.7rem",
+                }}
+              >
+                Logged in as {user?.email}
+              </Typography>
+            </Box>
+          </Box>
+        )}
         {/* Clear button at bottom */}
         <Box sx={{ p: 2 }}>
         <Button
@@ -241,17 +300,60 @@ export default function Chat() {
                 <MenuIcon />
               </IconButton>
             )}
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                color: darkMode ? "#ffffff" : "#1a1a1a",
-                fontWeight: 600
-              }}
-            >
-              Quanta Club
-            </Typography>
+            {!sidebarOpen && (
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  color: darkMode ? "#ffffff" : "#1a1a1a",
+                  fontWeight: 600
+                }}
+              >
+                Quanta Club
+              </Typography>
+            )}
           </Box>
-          <Box sx={{ display: "flex", gap: 1 }}>
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            {/* User Status Indicator */}
+            {isAuthenticated && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: 2,
+                  backgroundColor: darkMode ? "rgba(76, 175, 80, 0.2)" : "rgba(76, 175, 80, 0.1)",
+                  border: `1px solid ${darkMode ? "#4caf50" : "#4caf50"}`,
+                  mr: 1,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    backgroundColor: "#4caf50",
+                    animation: "pulse 2s infinite",
+                    "@keyframes pulse": {
+                      "0%": { opacity: 1 },
+                      "50%": { opacity: 0.5 },
+                      "100%": { opacity: 1 },
+                    },
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: darkMode ? "#4caf50" : "#2e7d32",
+                    fontWeight: 500,
+                    fontSize: "0.75rem",
+                  }}
+                >
+                  {user?.email}
+                </Typography>
+              </Box>
+            )}
             <IconButton
               onClick={toggleDarkMode}
               sx={{
@@ -264,17 +366,31 @@ export default function Chat() {
             >
               {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
+            {isAuthenticated && (
+              <IconButton
+                onClick={() => navigate("/admin")}
+                sx={{
+                  color: darkMode ? "#e0e0e0" : "#666",
+                  "&:hover": {
+                    backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                  },
+                }}
+                title="Admin Panel"
+              >
+                <SettingsIcon />
+              </IconButton>
+            )}
             <IconButton
-              onClick={() => navigate("/admin")}
+              onClick={isAuthenticated ? () => { logout(); navigate("/login"); } : () => navigate("/login")}
               sx={{
                 color: darkMode ? "#e0e0e0" : "#666",
                 "&:hover": {
                   backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
                 },
               }}
-              title="Admin Panel"
+              title={isAuthenticated ? "Logout" : "Login"}
             >
-              <SettingsIcon />
+              {isAuthenticated ? <LogoutIcon /> : <LoginIcon />}
             </IconButton>
           </Box>
         </Box>
