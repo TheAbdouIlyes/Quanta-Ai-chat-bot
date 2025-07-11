@@ -162,6 +162,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Alternative frontend port
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3000",
+    "https://your-frontend-url.com",  # <-- Add your deployed frontend URL here
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -182,3 +183,5 @@ CORS_ALLOW_HEADERS = [
 # Email backend for development
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@quanta.com'
+
+# Ensure the uploads/ directory is writable by the backend server in production

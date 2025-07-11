@@ -7,6 +7,7 @@ import Login from "./Login";
 import Register from "./Register";
 import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./AuthContext";
+import { ChatProvider } from "./ChatContext";
 import {
   AppBar,
   Toolbar,
@@ -69,38 +70,40 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <DarkModeContext.Provider value={{ darkMode, toggleDarkMode }}>
-        <Router>
-          {/* <AppBar position="static">
-            <Toolbar>
-              <IconButton edge="start" color="inherit" onClick={toggleDrawer(true)} sx={{ mr: 2 }}>
-                <MenuIcon />
-              </IconButton>
-              <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                Quanta Chatbot
-              </Typography>
-            </Toolbar>
-          </AppBar> */}
+      <ChatProvider>
+        <DarkModeContext.Provider value={{ darkMode, toggleDarkMode }}>
+          <Router>
+            {/* <AppBar position="static">
+              <Toolbar>
+                <IconButton edge="start" color="inherit" onClick={toggleDrawer(true)} sx={{ mr: 2 }}>
+                  <MenuIcon />
+                </IconButton>
+                <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                  Quanta Chatbot
+                </Typography>
+              </Toolbar>
+            </AppBar> */}
 
-          {/* <Drawer open={open} onClose={toggleDrawer(false)}>
-            {drawerContent}
-          </Drawer> */}
+            {/* <Drawer open={open} onClose={toggleDrawer(false)}>
+              {drawerContent}
+            </Drawer> */}
 
-          <Routes>
-            <Route path="/" element={<Chat />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute>
-                  <AdminPanel />
-                </ProtectedRoute>
-              } 
-            />
-          </Routes>
-        </Router>
-      </DarkModeContext.Provider>
+            <Routes>
+              <Route path="/" element={<Chat />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } 
+              />
+            </Routes>
+          </Router>
+        </DarkModeContext.Provider>
+      </ChatProvider>
     </AuthProvider>
   );
 }

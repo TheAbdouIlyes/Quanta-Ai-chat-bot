@@ -37,7 +37,7 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import EditIcon from "@mui/icons-material/Edit";
 
 
-const API_BASE = "http://localhost:8000/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api"; // Use VITE_API_BASE_URL in production
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -283,7 +283,8 @@ export default function AdminPanel() {
         setFile(null);
         fetchFiles();
       } else {
-        showSnackbar(data.error || data.message || "❌ Failed to upload file.", "error");
+        // Show the backend error if available, otherwise a generic message
+        showSnackbar(data.error || data.message || `❌ Failed to upload file. [${res.status}]`, "error");
       }
     } catch (error) {
       console.error('Upload error:', error);

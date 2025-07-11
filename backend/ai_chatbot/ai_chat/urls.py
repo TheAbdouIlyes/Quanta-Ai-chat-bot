@@ -4,7 +4,7 @@ from .views import (
     ListFilesView, DeleteFileView, UpdateCommonQuestionView, DeleteCommonQuestionView,
     LoginView, LogoutView, RegisterView, RegistrationRequestsView, 
     ApproveRegistrationView, DeclineRegistrationView, CheckRegistrationStatusView,
-    AdminAccountsView, DeleteAdminAccountView
+    AdminAccountsView, DeleteAdminAccountView, ClearConversationView
 )
 
 urlpatterns = [
@@ -23,6 +23,7 @@ urlpatterns = [
     
     # Public endpoints
     path("chat", ChatView.as_view(), name="chat"),
+    path("clear-conversation/", ClearConversationView.as_view(), name="clear-conversation"),
     path("common-questions/", CommonQuestionsView.as_view(), name="common-questions"),
     
     # Admin endpoints (require authentication)

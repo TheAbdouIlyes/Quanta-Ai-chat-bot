@@ -19,15 +19,15 @@ class User(AbstractUser):
 
 class RegistrationRequest(models.Model):
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
     username = models.CharField(max_length=150)
+    password = models.CharField(max_length=128)
     created_at = models.DateTimeField(auto_now_add=True)
     is_approved = models.BooleanField(default=False)
     is_declined = models.BooleanField(default=False)
     declined_reason = models.TextField(blank=True, null=True)
-    
+
     def __str__(self):
-        return f"Registration request from {self.email}"
+        return f"{self.email} - {self.created_at}"
 
 class UploadedFile(models.Model):
     name = models.CharField(max_length=255)
@@ -44,16 +44,6 @@ class Chunk(models.Model):
 
     def get_embedding(self) -> np.ndarray:
         return np.frombuffer(self.embedding, dtype=np.float32)
-from rest_framework import serializers
-
-class UploadedFileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UploadedFile
-        fields = ['id', 'name', 'path', 'uploaded_at']
-
-
-
-
 
 class CommonQuestion(models.Model):
     question = models.CharField(max_length=255)
@@ -61,3 +51,36 @@ class CommonQuestion(models.Model):
 
     def __str__(self):
         return self.question
+
+class Conversation(models.Model):
+    """Model to group chat messages into conversations"""
+    session_id = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Conversation {self.session_id} - {self.created_at}"
+
+class ChatMessage(models.Model):
+    """Model to store individual chat messages"""
+    ROLE_CHOICES = [
+        ('user', 'User'),
+        ('bot', 'Bot'),
+    ]
+    
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['timestamp']
+    
+    def __str__(self):
+        return f"{self.role}: {self.content[:50]}..."
+from rest_framework import serializers
+
+class UploadedFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UploadedFile
+        fields = ['id', 'name', 'path', 'uploaded_at']

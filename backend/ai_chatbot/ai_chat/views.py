@@ -17,7 +17,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from sentence_transformers import SentenceTransformer
 from langdetect import detect
 from django.contrib.auth import authenticate
-from .models import UploadedFile, Chunk, User, RegistrationRequest
+from .models import UploadedFile, Chunk, User, RegistrationRequest, Conversation, ChatMessage
 from django.core.mail import send_mail
 
 nltk.download("punkt")
@@ -305,8 +305,20 @@ class ChatView(APIView):
     
     def post(self, request):
         user_msg = request.data.get("message", "").strip()
+        session_id = request.data.get("session_id", "default")
+        
         if not user_msg:
             return Response({"reply": "Please enter a message."}, status=400)
+
+        # Get or create conversation
+        conversation, created = Conversation.objects.get_or_create(session_id=session_id)
+        
+        # Save user message
+        ChatMessage.objects.create(
+            conversation=conversation,
+            role='user',
+            content=user_msg
+        )
 
         # Step 1: Try to match a common question from DB
         all_questions = list(CommonQuestion.objects.values_list("question", flat=True))
@@ -315,7 +327,13 @@ class ChatView(APIView):
         if matched:
             matched_question = CommonQuestion.objects.filter(question__iexact=matched[0]).first()
             if matched_question:
-                return Response(  matched_question.answer.strip('"'))
+                # Save bot response
+                ChatMessage.objects.create(
+                    conversation=conversation,
+                    role='bot',
+                    content=matched_question.answer.strip('"')
+                )
+                return Response(matched_question.answer.strip('"'))
 
         # Step 2: Continue with LLM if no match
         try:
@@ -328,27 +346,50 @@ class ChatView(APIView):
         # Use all relevant chunks without language filtering since we want English responses
         relevant_chunks = relevant_chunks[:3]  # Limit to top 3 chunks
 
+        # Get conversation history (last 10 messages to keep context manageable)
+        recent_messages = ChatMessage.objects.filter(conversation=conversation).order_by('-timestamp')[:10]
+        conversation_history = []
+        for msg in reversed(recent_messages):  # Reverse to get chronological order
+            conversation_history.append(f"{msg.role.capitalize()}: {msg.content}")
+        
         # Always use English instruction regardless of user's message language
         instruction = "You are an English assistant. Always respond in English only. Do not use any other language. Even if the user writes in a different language, respond in English."
 
         # Limit context to prevent huge prompts
         context = "\n\n".join(relevant_chunks)  # Use filtered chunks
-        # print("context:",context)
-        prompt = f"""{instruction}
+        
+        # Build prompt with conversation history
+        if conversation_history:
+            history_text = "\n".join(conversation_history)
+            prompt = f"""{instruction}
 
-Context (can be in a different language):
+Previous conversation:
+{history_text}
+
+Context from knowledge base:
 {context}
 
-User message (detect language and respond in same language):
+Current user message:
 {user_msg}
-"""
+
+Please respond to the user's message, taking into account the conversation history and context provided."""
+        else:
+            prompt = f"""{instruction}
+
+Context from knowledge base:
+{context}
+
+User message:
+{user_msg}"""
 
         def generate():
             try:
                 buffer = ""
+                full_response = ""
                 for chunk in ollama.generate(model='quanta-chatbot', prompt=prompt, stream=True):
                     raw = chunk.get("response", "")
                     buffer += raw
+                    full_response += raw
                     if re.search(r"[.!?،؛؟]\s*$", buffer):
                         cleaned = buffer
                         if cleaned:
@@ -358,8 +399,22 @@ User message (detect language and respond in same language):
                     cleaned = buffer
                     if cleaned:
                         yield f"{cleaned}\n"
+                
+                # Save bot response after generation is complete
+                if full_response.strip():
+                    ChatMessage.objects.create(
+                        conversation=conversation,
+                        role='bot',
+                        content=full_response.strip()
+                    )
             except Exception as e:
-                yield f"data: [LLM Error] {str(e)}\n\n"
+                error_msg = f"[LLM Error] {str(e)}"
+                ChatMessage.objects.create(
+                    conversation=conversation,
+                    role='bot',
+                    content=error_msg
+                )
+                yield f"data: {error_msg}\n\n"
 
         response = StreamingHttpResponse(generate(), content_type="text/event-stream")
         response["Cache-Control"] = "no-cache"
@@ -372,19 +427,24 @@ class UploadDocView(APIView):
     permission_classes = [IsAuthenticated]  # Require authentication for uploads
 
     def post(self, request):
+        import logging
+        logger = logging.getLogger(__name__)
         try:
             file = request.FILES.get("file")
             if not file:
+                logger.error("No file uploaded.")
                 return Response({"error": "No file uploaded."}, status=400)
 
             # Check file size (limit to 10MB)
             if file.size > 10 * 1024 * 1024:
+                logger.error(f"File size too large: {file.size} bytes")
                 return Response({"error": "File size too large. Maximum size is 10MB."}, status=400)
 
             # Check file extension
             allowed_extensions = ['.pdf', '.docx', '.txt']
             file_extension = os.path.splitext(file.name)[1].lower()
             if file_extension not in allowed_extensions:
+                logger.error(f"Unsupported file type: {file_extension}")
                 return Response({"error": f"Unsupported file type. Allowed types: {', '.join(allowed_extensions)}"}, status=400)
 
             filename = file.name
@@ -401,6 +461,7 @@ class UploadDocView(APIView):
                 # Clean up the file if text extraction failed
                 if os.path.exists(path):
                     os.remove(path)
+                logger.error(f"Could not extract text from file: {filename}")
                 return Response({"error": "Could not extract text from the uploaded file. Please ensure the file contains readable text."}, status=400)
 
             # Create database record
@@ -423,6 +484,7 @@ class UploadDocView(APIView):
             # Clean up any partially saved file
             if 'path' in locals() and os.path.exists(path):
                 os.remove(path)
+            logger.exception(f"Error processing file: {str(e)}")
             return Response({"error": f"Error processing file: {str(e)}"}, status=500)
     
 
@@ -582,6 +644,25 @@ class DeleteAdminAccountView(APIView):
         user.delete()
         return Response({'message': f'Admin account {user.email} deleted.'})
     
+
+class ClearConversationView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        session_id = request.data.get("session_id", "default")
+        
+        try:
+            conversation = Conversation.objects.get(session_id=session_id)
+            # Delete all messages in the conversation
+            ChatMessage.objects.filter(conversation=conversation).delete()
+            # Delete the conversation itself
+            conversation.delete()
+            return Response({'message': 'Conversation cleared successfully.'})
+        except Conversation.DoesNotExist:
+            return Response({'message': 'No conversation found to clear.'})
+        except Exception as e:
+            return Response({'error': f'Error clearing conversation: {str(e)}'}, status=500)
+
 
 # Add this at the top of views.py
 _cached_index = None

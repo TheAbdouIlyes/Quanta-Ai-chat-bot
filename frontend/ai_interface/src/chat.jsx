@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDarkMode } from "./App";
 import { useAuth } from "./AuthContext";
+import { useChat } from "./ChatContext";
 import {
   Box,
   Button,
@@ -30,104 +31,30 @@ import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import QuantaLogo from "./assets/QuantaLogo";
 
-const API_BASE = "http://localhost:8000/api";
-
 export default function Chat() {
   const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { user, isAuthenticated, logout } = useAuth();
-  const [message, setMessage] = useState("");
-  const [chatLog, setChatLog] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [commonQuestions, setCommonQuestions] = useState([]);
+  const {
+    message,
+    setMessage,
+    chatLog,
+    isLoading,
+    commonQuestions,
+    copiedMessageId,
+    handleSendMessage,
+    handleKeyPress,
+    handleCommonQuestionClick,
+    clearChat,
+    copyMessage,
+  } = useChat();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [copiedMessageId, setCopiedMessageId] = useState(null);
 
   const chatBoxRef = useRef(null);
-
-  const fetchCommonQuestions = async () => {
-    const res = await fetch(`${API_BASE}/common-questions/`);
-    const data = await res.json();
-    setCommonQuestions(data.questions || []);
-  };
 
   useEffect(() => {
     chatBoxRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatLog]);
-
-  useEffect(() => {
-      fetchCommonQuestions();
-  }, []);
-
-  const handleSendMessage = async () => {
-    if (!message.trim()) return;
-    const userEntry = { role: "user", content: message };
-    setChatLog((prev) => [...prev, userEntry]);
-    setIsLoading(true);
-    setMessage("");
-    try {
-      const response = await fetch(`${API_BASE}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-      if (!response.ok) throw new Error("Server error");
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let botReply = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        botReply += decoder.decode(value);
-        setChatLog((prev) => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last?.role === "bot") {
-            last.content = botReply;
-          } else {
-            updated.push({ role: "bot", content: botReply });
-          }
-          return [...updated];
-        });
-      }
-    } catch (err) {
-      setChatLog((prev) => [
-        ...prev,
-        { role: "bot", content: "Error: " + err.message },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const handleCommonQuestionClick = (q, a) => {
-    setChatLog((prev) => [
-      ...prev,
-      { role: "user", content: q },
-      { role: "bot", content: a },
-    ]);
-  };
-
-  const clearChat = () => {
-    setChatLog([]);
-  };
-
-  const copyMessage = async (content, messageId) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopiedMessageId(messageId);
-      setTimeout(() => setCopiedMessageId(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy message:', err);
-    }
-  };
 
   const drawerWidth = 280;
 
