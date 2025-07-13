@@ -2,6 +2,7 @@
 import React, { useState, createContext, useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Chat from "./chat";
+import LandingPage from "./LandingPage";
 import AdminPanel from "./AdminPanel";
 import Login from "./Login";
 import Register from "./Register";
@@ -55,7 +56,7 @@ export default function App() {
     <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
       <List>
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/">
+          <ListItemButton component={Link} to="/chat">
             <ListItemText primary="Chat" />
           </ListItemButton>
         </ListItem>
@@ -72,36 +73,46 @@ export default function App() {
     <AuthProvider>
       <ChatProvider>
         <DarkModeContext.Provider value={{ darkMode, toggleDarkMode }}>
-          <Router>
-            {/* <AppBar position="static">
-              <Toolbar>
-                <IconButton edge="start" color="inherit" onClick={toggleDrawer(true)} sx={{ mr: 2 }}>
-                  <MenuIcon />
-                </IconButton>
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                  Quanta Chatbot
-                </Typography>
-              </Toolbar>
-            </AppBar> */}
+          <Box
+            sx={{
+              minHeight: '100vh',
+              minWidth: '100vw',
+              backgroundColor: darkMode ? '#181818' : '#f7f7f8',
+              transition: 'background-color 0.3s',
+            }}
+          >
+            <Router>
+              {/* <AppBar position="static">
+                <Toolbar>
+                  <IconButton edge="start" color="inherit" onClick={toggleDrawer(true)} sx={{ mr: 2 }}>
+                    <MenuIcon />
+                  </IconButton>
+                  <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                    Quanta Chatbot
+                  </Typography>
+                </Toolbar>
+              </AppBar> */}
 
-            {/* <Drawer open={open} onClose={toggleDrawer(false)}>
-              {drawerContent}
-            </Drawer> */}
+              {/* <Drawer open={open} onClose={toggleDrawer(false)}>
+                {drawerContent}
+              </Drawer> */}
 
-            <Routes>
-              <Route path="/" element={<Chat />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute>
-                    <AdminPanel />
-                  </ProtectedRoute>
-                } 
-              />
-            </Routes>
-          </Router>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  } 
+                />
+              </Routes>
+            </Router>
+          </Box>
         </DarkModeContext.Provider>
       </ChatProvider>
     </AuthProvider>

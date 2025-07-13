@@ -291,7 +291,7 @@ export default function Login() {
                       textDecoration: "underline",
                     },
                   }}
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/chat")}
                 >
                   Back to Chat
                 </MuiLink>

@@ -321,7 +321,7 @@ export default function AdminPanel() {
 
   return (
     <Box sx={{ 
-      height: "100vh", 
+      // height: "100vh", 
       backgroundColor: darkMode ? "#2d2d2d" : "#f7f7f8",
       transition: "background-color 0.3s ease"
     }}>
@@ -335,7 +335,7 @@ export default function AdminPanel() {
         <Toolbar>
           <IconButton
             edge="start"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/chat")}
             sx={{ mr: 2, color: darkMode ? "#e0e0e0" : "#666" }}
           >
             <ArrowBackIcon />
@@ -360,7 +360,7 @@ export default function AdminPanel() {
             <Button
               variant="outlined"
               startIcon={<ChatIcon />}
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/chat")}
               sx={{ 
                 color: "#10a37f", 
                 borderColor: "#10a37f",
@@ -393,9 +393,9 @@ export default function AdminPanel() {
           backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
           transition: "background-color 0.3s ease",
           display: "flex",
-          flexDirection: "column"
+          flexDirection: "column",
         }}>
-              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+              <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                   <QuestionAnswerIcon sx={{ mr: 1, color: "#10a37f" }} />
                                   <Typography variant="h6" sx={{ fontWeight: 600, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
@@ -412,18 +412,25 @@ export default function AdminPanel() {
                     variant="outlined"
                     placeholder="Enter a common question..."
                     sx={{
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
-                        color: darkMode ? "#ffffff" : "#000000",
-                        "& .MuiInputBase-input": {
-                          color: darkMode ? "#ffffff" : "#000000",
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: darkMode ? '#1a1a1a' : '#ffffff',
+                        color: darkMode ? '#ffffff' : '#000000',
+                        '& .MuiInputBase-input': {
+                          color: darkMode ? '#ffffff' : '#000000',
+                          '::placeholder': {
+                            color: darkMode ? '#cccccc' : '#888888',
+                            opacity: 1,
+                          },
                         },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: darkMode ? "#404040" : "#d0d0d0",
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? '#404040' : '#d0d0d0',
                         },
-                        "& .MuiInputLabel-root": {
-                          color: darkMode ? "#e0e0e0" : "#666",
-                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: darkMode ? '#e0e0e0' : '#666',
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: darkMode ? '#ffffff' : '#1976d2',
                       },
                     }}
                   />
@@ -437,18 +444,25 @@ export default function AdminPanel() {
                     variant="outlined"
                     placeholder="Enter the answer..."
                     sx={{
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
-                        color: darkMode ? "#ffffff" : "#000000",
-                        "& .MuiInputBase-input": {
-                          color: darkMode ? "#ffffff" : "#000000",
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: darkMode ? '#1a1a1a' : '#ffffff',
+                        color: darkMode ? '#ffffff' : '#000000',
+                        '& .MuiInputBase-input': {
+                          color: darkMode ? '#ffffff' : '#000000',
+                          '::placeholder': {
+                            color: darkMode ? '#cccccc' : '#888888',
+                            opacity: 1,
+                          },
                         },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: darkMode ? "#404040" : "#d0d0d0",
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: darkMode ? '#404040' : '#d0d0d0',
                         },
-                        "& .MuiInputLabel-root": {
-                          color: darkMode ? "#e0e0e0" : "#666",
-                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: darkMode ? '#e0e0e0' : '#666',
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: darkMode ? '#ffffff' : '#1976d2',
                       },
                     }}
                   />
@@ -472,10 +486,10 @@ export default function AdminPanel() {
                 </Typography>
                 
                 <Box sx={{ 
-                  flexGrow: 1, 
+                  flex: 1, 
                   overflowY: "auto", 
                   minHeight: 0,
-                  maxHeight: "calc(100vh - 400px)",
+                  pt: 1,
                   "&::-webkit-scrollbar": {
                     width: "8px",
                   },
@@ -486,22 +500,25 @@ export default function AdminPanel() {
                     backgroundColor: darkMode ? "#666" : "#c1c1c1",
                     borderRadius: "4px",
                   },
+                  "&::-webkit-scrollbar-thumb:hover": {
+                    backgroundColor: darkMode ? "#888" : "#a8a8a8",
+                  },
                 }}>
                   {commonQuestions.map((item, idx) => (
                     <Paper key={idx} sx={{ 
                       p: 2, 
-                      mb: 1, 
+                      mb: 1, // uniform margin for all items
                       backgroundColor: darkMode ? "#2d2d2d" : "#f8f9fa",
                       transition: "background-color 0.3s ease"
                     }}>
                       {editingFAQ === item.id ? (
-                        <Box>
+                        <Box sx={{ minHeight: "fit-content" }}>
                           <TextField
                             label="Question"
                             value={editQuestion}
                             onChange={e => setEditQuestion(e.target.value)}
                             fullWidth
-                            sx={{ mb: 1 }}
+                            sx={{ mb: 2 }}
                           />
                           <TextField
                             label="Answer"
@@ -510,10 +527,12 @@ export default function AdminPanel() {
                             fullWidth
                             multiline
                             rows={3}
-                            sx={{ mb: 1 }}
+                            sx={{ mb: 2 }}
                           />
-                          <Button onClick={() => handleEditSave(item.id)} variant="contained" sx={{ mr: 1, backgroundColor: "#10a37f" }}>Save</Button>
-                          <Button onClick={handleEditCancel} variant="outlined">Cancel</Button>
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button onClick={() => handleEditSave(item.id)} variant="contained" sx={{ backgroundColor: "#10a37f" }}>Save</Button>
+                            <Button onClick={handleEditCancel} variant="outlined">Cancel</Button>
+                          </Box>
                         </Box>
                       ) : (
                         <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -549,9 +568,9 @@ export default function AdminPanel() {
           backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",
           transition: "background-color 0.3s ease",
           display: "flex",
-          flexDirection: "column"
+          flexDirection: "column",
         }}>
-              <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+              <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                   <UploadIcon sx={{ mr: 1, color: "#10a37f" }} />
                   <Typography variant="h6" sx={{ fontWeight: 600, color: darkMode ? "#ffffff" : "#1a1a1a" }}>
@@ -613,10 +632,10 @@ export default function AdminPanel() {
                 </Box>
                 
                 <Box sx={{ 
-                  flexGrow: 1, 
+                  flex: 1, 
                   overflowY: "auto", 
                   minHeight: 0,
-                  maxHeight: "calc(100vh - 400px)",
+                  pt: 1,
                   "&::-webkit-scrollbar": {
                     width: "8px",
                   },
@@ -626,6 +645,9 @@ export default function AdminPanel() {
                   "&::-webkit-scrollbar-thumb": {
                     backgroundColor: darkMode ? "#666" : "#c1c1c1",
                     borderRadius: "4px",
+                  },
+                  "&::-webkit-scrollbar-thumb:hover": {
+                    backgroundColor: darkMode ? "#888" : "#a8a8a8",
                   },
                 }}>
                   {uploadedFiles.length === 0 ? (
@@ -684,7 +706,7 @@ export default function AdminPanel() {
 
         {/* Registration Requests Section (super admin only) */}
         {user?.is_super_admin && (
-          <Container sx={{ mt: 4, mb: 4, maxWidth: "100%", px: 2 }}>
+          <Container sx={{ mt: 4, maxWidth: "100%", px: 2 }}>
             <Card sx={{
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               backgroundColor: darkMode ? "#1a1a1a" : "#ffffff",

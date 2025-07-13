@@ -15,6 +15,11 @@ import {
   Drawer,
   Divider,
   Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
@@ -30,6 +35,9 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import QuantaLogo from "./assets/QuantaLogo";
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import Popover from '@mui/material/Popover';
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -49,6 +57,9 @@ export default function Chat() {
     copyMessage,
   } = useChat();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [logoutSnackbarOpen, setLogoutSnackbarOpen] = useState(false);
+  const [logoutPopoverAnchor, setLogoutPopoverAnchor] = useState(null);
 
   const chatBoxRef = useRef(null);
 
@@ -240,6 +251,29 @@ export default function Chat() {
             )}
           </Box>
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            {/* Home Button */}
+            <IconButton
+              onClick={() => navigate("/chat")}
+              sx={{
+                color: darkMode ? "#e0e0e0" : "#666",
+                "&:hover": {
+                  backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                },
+              }}
+              title="Back to Chat"
+            >
+              <Box
+                component="svg"
+                sx={{
+                  width: 24,
+                  height: 24,
+                  fill: "currentColor",
+                }}
+                viewBox="0 0 24 24"
+              >
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+              </Box>
+            </IconButton>
             {/* User Status Indicator */}
             {isAuthenticated && (
               <Box
@@ -308,7 +342,7 @@ export default function Chat() {
               </IconButton>
             )}
             <IconButton
-              onClick={isAuthenticated ? () => { logout(); navigate("/login"); } : () => navigate("/login")}
+              onClick={isAuthenticated ? (e) => setLogoutPopoverAnchor(e.currentTarget) : () => navigate("/login")}
               sx={{
                 color: darkMode ? "#e0e0e0" : "#666",
                 "&:hover": {
@@ -321,6 +355,36 @@ export default function Chat() {
             </IconButton>
           </Box>
         </Box>
+        {/* Logout Confirmation Popover */}
+        <Popover
+          open={Boolean(logoutPopoverAnchor)}
+          anchorEl={logoutPopoverAnchor}
+          onClose={() => setLogoutPopoverAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          PaperProps={{
+            sx: {
+              p: 2,
+              minWidth: 220,
+              boxShadow: 3,
+              borderRadius: 2,
+              backgroundColor: darkMode ? '#23272f' : '#fff',
+              color: darkMode ? '#fff' : '#23272f',
+            }
+          }}
+        >
+          <Typography sx={{ mb: 2, fontWeight: 500, color: darkMode ? '#fff' : '#23272f' }}>
+            Are you sure you want to log out?
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+            <Button size="small" onClick={() => setLogoutPopoverAnchor(null)} sx={{ color: darkMode ? '#b0b0b0' : undefined }}>
+              Cancel
+            </Button>
+            <Button size="small" color="error" variant="contained" onClick={() => { setLogoutPopoverAnchor(null); logout(); navigate("/login"); }}>
+              Logout
+            </Button>
+          </Box>
+        </Popover>
         {/* Chat Messages */}
         <Box
           sx={{
@@ -382,7 +446,7 @@ export default function Chat() {
                     }}
                   >
                     {msg.role === "user" ? (
-                      <>
+                      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", width: "100%" }}>
                         <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-end", width: "100%", minHeight: 40 }}>
                           {/* Message text */}
                           <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end", pr: 2 }}>
@@ -413,8 +477,8 @@ export default function Chat() {
                             </Avatar>
                           </Box>
                         </Box>
-                        {/* Copy button for user message */}
-                        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                        {/* Copy button for user message BELOW the message bubble */}
+                        <Box sx={{ display: "flex", justifyContent: "flex-end", pr: 6, mt: 0.5, width: "100%" }}>
                           <IconButton
                             className="copy-button"
                             onClick={() => copyMessage(msg.content, `user-${idx}`)}
@@ -435,7 +499,7 @@ export default function Chat() {
                             )}
                           </IconButton>
                         </Box>
-                      </>
+                      </Box>
                     ) : (
                       <>
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, flexGrow: 1 }}>
@@ -458,7 +522,7 @@ export default function Chat() {
                                 ml: 1,
                               }}
                             >
-                              Quanta AI Chat Bot
+                              Quanti-Ai 
                             </Typography>
                           </Box>
                           <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
@@ -531,7 +595,7 @@ export default function Chat() {
                           fontWeight: 500
                         }}
                       >
-                        Quanta AI Chat Bot
+                        Quanti Ai
                       </Typography>
                       <Avatar
                         sx={{
@@ -571,7 +635,7 @@ export default function Chat() {
             fullWidth
             multiline
             maxRows={4}
-              placeholder="Message Quanta Club AI..."
+              placeholder="Message Quanti-Ai chatbot here..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -628,6 +692,30 @@ export default function Chat() {
           </Box>
         </Box>
       </Box>
+      {/* Logout Confirmation Snackbar */}
+      <Snackbar
+        open={logoutSnackbarOpen}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        onClose={() => setLogoutSnackbarOpen(false)}
+        autoHideDuration={6000}
+      >
+        <Alert
+          severity="warning"
+          sx={{ width: '100%' }}
+          action={
+            <>
+              <Button color="error" size="small" onClick={() => { setLogoutSnackbarOpen(false); logout(); navigate("/login"); }}>
+                Logout
+              </Button>
+              <Button color="inherit" size="small" onClick={() => setLogoutSnackbarOpen(false)}>
+                Cancel
+              </Button>
+            </>
+          }
+        >
+          Are you sure you want to log out?
+        </Alert>
+      </Snackbar>
     </Box>
   );
 } 

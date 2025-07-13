@@ -156,8 +156,8 @@ export const ChatProvider = ({ children }) => {
     } catch (error) {
       console.error("Error clearing conversation:", error);
       // Still clear local state even if backend call fails
-      setChatLog([]);
-      localStorage.removeItem("chatHistory");
+    setChatLog([]);
+    localStorage.removeItem("chatHistory");
       setSessionId(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
     }
   };
