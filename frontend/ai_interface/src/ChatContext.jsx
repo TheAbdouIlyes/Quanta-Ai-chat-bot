@@ -18,6 +18,8 @@ export const ChatProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [commonQuestions, setCommonQuestions] = useState([]);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
+  const [responseTime, setResponseTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [sessionId, setSessionId] = useState(() => {
     // Generate a unique session ID for this conversation
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -25,6 +27,10 @@ export const ChatProvider = ({ children }) => {
   
   // Ref to track ongoing requests
   const ongoingRequestRef = useRef(null);
+  // Ref to track response start time
+  const responseStartTimeRef = useRef(null);
+  // Ref to track timer interval
+  const timerIntervalRef = useRef(null);
 
   // Load chat history from localStorage on mount
   useEffect(() => {
@@ -65,6 +71,20 @@ export const ChatProvider = ({ children }) => {
     setChatLog((prev) => [...prev, userEntry]);
     setIsLoading(true);
     setMessage("");
+    setResponseTime(null);
+    setElapsedTime(0);
+    
+    // Start timing the response
+    responseStartTimeRef.current = Date.now();
+    
+    // Start real-time timer
+    timerIntervalRef.current = setInterval(() => {
+      if (responseStartTimeRef.current) {
+        const currentTime = Date.now();
+        const elapsed = (currentTime - responseStartTimeRef.current) / 1000;
+        setElapsedTime(elapsed);
+      }
+    }, 100);
     
     try {
       // Abort any ongoing request
@@ -108,6 +128,13 @@ export const ChatProvider = ({ children }) => {
           return [...updated];
         });
       }
+      
+      // Calculate and set response time
+      if (responseStartTimeRef.current) {
+        const endTime = Date.now();
+        const timeElapsed = (endTime - responseStartTimeRef.current) / 1000; // Convert to seconds
+        setResponseTime(timeElapsed);
+      }
     } catch (err) {
       if (err.name === 'AbortError') {
         console.log('Request was aborted');
@@ -119,7 +146,15 @@ export const ChatProvider = ({ children }) => {
       ]);
     } finally {
       setIsLoading(false);
+      setElapsedTime(0);
       ongoingRequestRef.current = null;
+      responseStartTimeRef.current = null;
+      
+      // Clear timer interval
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
     }
   };
 
@@ -181,6 +216,8 @@ export const ChatProvider = ({ children }) => {
     setIsLoading,
     commonQuestions,
     copiedMessageId,
+    responseTime,
+    elapsedTime,
     sessionId,
     handleSendMessage,
     handleKeyPress,

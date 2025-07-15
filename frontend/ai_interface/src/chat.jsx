@@ -50,6 +50,8 @@ export default function Chat() {
     isLoading,
     commonQuestions,
     copiedMessageId,
+    responseTime,
+    elapsedTime,
     handleSendMessage,
     handleKeyPress,
     handleCommonQuestionClick,
@@ -524,6 +526,19 @@ export default function Chat() {
                             >
                               Quanti-Ai 
                             </Typography>
+                            {responseTime && idx === chatLog.length - 1 && (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: darkMode ? "#8e8ea0" : "#666",
+                                  fontSize: "0.75rem",
+                                  ml: 1,
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                ({responseTime.toFixed(1)}s)
+                              </Typography>
+                            )}
                           </Box>
                           <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
                             <Box sx={{ flexGrow: 1 }}>
@@ -607,7 +622,19 @@ export default function Chat() {
                         <SmartToyIcon />
                       </Avatar>
                     </Box>
-                    <CircularProgress size={20} />
+                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5 }}>
+                      <CircularProgress size={20} />
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: darkMode ? "#8e8ea0" : "#666",
+                          fontSize: "0.7rem",
+                          fontStyle: "italic",
+                        }}
+                      >
+                        Responding... ({elapsedTime.toFixed(1)}s)
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               )}
