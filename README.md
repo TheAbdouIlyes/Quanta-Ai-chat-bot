@@ -1,9 +1,12 @@
+![alt text](image.png)
+
 # Quanta AI Chatbot
 
 Quanta AI Chatbot is a web application for the Quanta Club. It gives visitors a
 public chat interface for questions about the club and gives authenticated
 administrators tools to manage the chatbot's knowledge base and frequently
 asked questions.
+
 
 The application combines:
 
