@@ -8,6 +8,18 @@ administrators tools to manage the chatbot's knowledge base and frequently
 asked questions.
 
 
+<video controls src="20250715-1142-43.0450813.mp4" title="Title"></video>
+
+![alt text](image-2.png)
+
+
+
+![alt text](image-1.png)
+
+With Dark mode active
+
+![alt text](image-3.png)
+
 The application combines:
 
 - A React interface built with Vite and Material UI.
