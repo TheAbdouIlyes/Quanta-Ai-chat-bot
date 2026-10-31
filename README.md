@@ -8,7 +8,7 @@ administrators tools to manage the chatbot's knowledge base and frequently
 asked questions.
 
 
-<video controls src="20250715-1142-43.0450813.mp4" title="Title"></video>
+[<video controls src="20250715-1142-43.0450813.mp4" title="Title"></video>](https://github.com/user-attachments/assets/2b339ab5-53e4-4eab-922f-12d77ab49620)
 
 ![alt text](image-2.png)
 
